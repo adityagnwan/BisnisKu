@@ -1,7 +1,3 @@
-BisnisKu
-BisnisKu — Aplikasi Manajemen Bisnis & Keuangan Aplikasi web untuk mengelola keuangan dan operasional bisnis, dengan fitur kasir (POS), cetak struk, manajemen inventaris dan integrasi Telegram Bot.
-
-
 # 💼 BisnisKu
 
 **BisnisKu** adalah aplikasi web manajemen bisnis dan kasir (Point of Sales) *offline-first* yang dirancang khusus untuk memenuhi kebutuhan operasional Usaha Kecil dan Menengah (UKM). Dibangun murni menggunakan HTML, CSS, dan JavaScript tanpa framework backend kompleks, menjadikan aplikasi ini super ringan, cepat, dan 100% berjalan di browser Anda dengan bantuan **Local Storage**.
