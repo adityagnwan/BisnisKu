@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BisnisKu — Manajemen Bisnis & Keuangan</title>
+    <meta name="description" content="Aplikasi manajemen bisnis, kasir POS, inventaris, dan keuangan">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">B</div>
+                <span class="logo-text">BisnisKu</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-page="kasir" id="nav-kasir">
+                <i data-lucide="shopping-cart"></i>
+                <span>Kasir</span>
+            </a>
+            <a href="#" class="nav-item" data-page="produk" id="nav-produk">
+                <i data-lucide="package"></i>
+                <span>Produk</span>
+            </a>
+            <a href="#" class="nav-item" data-page="barangMasuk" id="nav-barangMasuk">
+                <i data-lucide="download"></i>
+                <span>Barang Masuk</span>
+            </a>
+            <a href="#" class="nav-item" data-page="laporan" id="nav-laporan">
+                <i data-lucide="file-text"></i>
+                <span>Laporan</span>
+            </a>
+
+            <a href="#" class="nav-item" data-page="settings" id="nav-settings">
+                <i data-lucide="settings"></i>
+                <span>Pengaturan</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="version-badge">v1.0</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+                <i data-lucide="menu"></i>
+            </button>
+            <div class="topbar-title">
+                <h1 id="pageTitle">Dashboard</h1>
+                <p class="topbar-date" id="currentDate"></p>
+            </div>
+            <div class="topbar-actions">
+                <div class="notification-badge" id="stockAlertBadge" title="Stok menipis">
+                    <i data-lucide="bell"></i>
+                    <span class="badge-count" id="stockAlertCount">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ======================= DASHBOARD PAGE ======================= -->
+        <section class="page active" id="page-dashboard">
+            <div class="stats-grid">
+                <div class="stat-card stat-revenue">
+                    <div class="stat-icon"><i data-lucide="wallet"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Pendapatan (Bulan Ini)</p>
+                        <h2 class="stat-value" id="statRevenue">Rp 0</h2>
+                    </div>
+                </div>
+                <div class="stat-card stat-expense">
+                    <div class="stat-icon"><i data-lucide="credit-card"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Pengeluaran (Bulan Ini)</p>
+                        <h2 class="stat-value" id="statExpense">Rp 0</h2>
+                    </div>
+                </div>
+                <div class="stat-card stat-profit">
+                    <div class="stat-icon"><i data-lucide="bar-chart-3"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Laba Bersih</p>
+                        <h2 class="stat-value" id="statProfit">Rp 0</h2>
+                    </div>
+                </div>
+                <div class="stat-card stat-transactions">
+                    <div class="stat-icon"><i data-lucide="receipt"></i></div>
+                    <div class="stat-info">
+                        <p class="stat-label">Transaksi Hari Ini</p>
+                        <h2 class="stat-value" id="statTransactions">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Tren Pendapatan & Pengeluaran</h3>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Top 5 Produk Terlaris</h3>
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h3>⚠️ Stok Menipis</h3>
+                <div class="low-stock-list" id="lowStockList">
+                    <p class="empty-state">Semua stok aman 👍</p>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h3>🕐 Transaksi Terakhir</h3>
+                <div class="recent-transactions" id="recentTransactions">
+                    <p class="empty-state">Belum ada transaksi</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= KASIR PAGE ======================= -->
+        <section class="page" id="page-kasir">
+            <div class="pos-layout">
+                <div class="pos-products">
+                    <div class="pos-search">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="posSearch" placeholder="Cari produk..." autocomplete="off">
+                        <select id="posCategoryFilter">
+                            <option value="">Semua Kategori</option>
+                        </select>
+                    </div>
+                    <div class="pos-product-grid" id="posProductGrid">
+                        <p class="empty-state">Belum ada produk. Tambahkan di menu Produk.</p>
+                    </div>
+                </div>
+                <div class="pos-cart">
+                    <div class="cart-header">
+                        <h3><i data-lucide="shopping-bag"></i> Keranjang</h3>
+                        <button class="btn-icon btn-danger-subtle" id="clearCartBtn" title="Kosongkan keranjang">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                    <div class="cart-items" id="cartItems">
+                        <p class="empty-state cart-empty">Keranjang kosong</p>
+                    </div>
+                    <div class="cart-summary">
+                        <div class="cart-row">
+                            <span>Subtotal</span>
+                            <span id="cartSubtotal">Rp 0</span>
+                        </div>
+                        <div class="cart-row cart-total">
+                            <span>TOTAL</span>
+                            <span id="cartTotal">Rp 0</span>
+                        </div>
+                        <div class="cart-payment">
+                            <label for="paymentAmount">Bayar (Rp)</label>
+                            <input type="number" id="paymentAmount" placeholder="0" min="0">
+                        </div>
+                        <div class="cart-row cart-change">
+                            <span>Kembali</span>
+                            <span id="cartChange">Rp 0</span>
+                        </div>
+                        <button class="btn btn-pay" id="payBtn" disabled>
+                            <i data-lucide="check-circle"></i> BAYAR & CETAK STRUK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= PRODUK PAGE ======================= -->
+        <section class="page" id="page-produk">
+            <div class="page-header">
+                <h2>Daftar Produk</h2>
+                <button class="btn btn-primary" id="addProductBtn">
+                    <i data-lucide="plus"></i> Tambah Produk
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table" id="productTable">
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Kategori</th>
+                            <th>Harga Beli</th>
+                            <th>Harga Jual</th>
+                            <th>Stok</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                        <tr><td colspan="6" class="empty-state">Belum ada produk</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ======================= BARANG MASUK PAGE ======================= -->
+        <section class="page" id="page-barangMasuk">
+            <div class="page-header">
+                <h2>Barang Masuk</h2>
+                <button class="btn btn-primary" id="addStockInBtn">
+                    <i data-lucide="plus"></i> Catat Barang Masuk
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table" id="stockInTable">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Produk</th>
+                            <th>Jumlah</th>
+                            <th>Harga Beli</th>
+                            <th>Total</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockInTableBody">
+                        <tr><td colspan="6" class="empty-state">Belum ada data</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ======================= LAPORAN PAGE ======================= -->
+        <section class="page" id="page-laporan">
+            <div class="page-header">
+                <h2>Laporan Transaksi</h2>
+                <div class="filter-group">
+                    <input type="date" id="filterDateFrom" class="input-date">
+                    <span>—</span>
+                    <input type="date" id="filterDateTo" class="input-date">
+                    <button class="btn btn-secondary" id="filterBtn">
+                        <i data-lucide="filter"></i> Filter
+                    </button>
+                    <button class="btn btn-secondary" id="exportCsvBtn">
+                        <i data-lucide="download"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+            <div class="report-summary" id="reportSummary">
+                <div class="report-stat">
+                    <span>Total Penjualan</span>
+                    <strong id="reportRevenue">Rp 0</strong>
+                </div>
+                <div class="report-stat">
+                    <span>Total Pembelian</span>
+                    <strong id="reportExpense">Rp 0</strong>
+                </div>
+                <div class="report-stat">
+                    <span>Laba Kotor</span>
+                    <strong id="reportProfit">Rp 0</strong>
+                </div>
+                <div class="report-stat">
+                    <span>Jumlah Transaksi</span>
+                    <strong id="reportTxCount">0</strong>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table" id="transactionTable">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Tipe</th>
+                            <th>Detail</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionTableBody">
+                        <tr><td colspan="4" class="empty-state">Belum ada transaksi</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ======================= SETTINGS PAGE ======================= -->
+        <section class="page" id="page-settings">
+            <div class="page-header">
+                <h2>⚙️ Pengaturan</h2>
+            </div>
+
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" data-stab="general"><i data-lucide="store"></i> Toko</button>
+                <button class="settings-tab" data-stab="receipt"><i data-lucide="receipt"></i> Struk</button>
+                <button class="settings-tab" data-stab="telegram"><i data-lucide="send"></i> Telegram</button>
+                <button class="settings-tab" data-stab="inventory"><i data-lucide="package"></i> Inventaris</button>
+                <button class="settings-tab" data-stab="pos"><i data-lucide="shopping-cart"></i> Kasir</button>
+                <button class="settings-tab" data-stab="users"><i data-lucide="users"></i> Pengguna</button>
+                <button class="settings-tab" data-stab="appearance"><i data-lucide="palette"></i> Tampilan</button>
+                <button class="settings-tab" data-stab="data"><i data-lucide="database"></i> Data</button>
+            </div>
+
+            <!-- TAB: General / Toko -->
+            <div class="settings-tab-content active" id="stab-general">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i data-lucide="store"></i> Informasi Toko</h3>
+                        <div class="form-group">
+                            <label for="storeName">Nama Toko</label>
+                            <input type="text" id="storeName" placeholder="Toko Saya" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="storeAddress">Alamat Toko</label>
+                            <input type="text" id="storeAddress" placeholder="Jl. Contoh No. 123" class="form-input">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="storePhone">No. Telp</label>
+                                <input type="text" id="storePhone" placeholder="08xxxxxxxxxx" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="storeEmail">Email</label>
+                                <input type="email" id="storeEmail" placeholder="toko@email.com" class="form-input">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="storeTagline">Tagline / Slogan</label>
+                            <input type="text" id="storeTagline" placeholder="Belanja hemat, hati senang!" class="form-input">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="storeCurrency">Mata Uang</label>
+                                <select id="storeCurrency" class="form-input">
+                                    <option value="Rp">IDR (Rp)</option>
+                                    <option value="$">USD ($)</option>
+                                    <option value="RM">MYR (RM)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="storeTax">Pajak (%)</label>
+                                <input type="number" id="storeTax" class="form-input" value="0" min="0" max="100" step="0.1">
+                                <small>Set 0 jika tidak ingin menerapkan pajak</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="saveStoreBtn">
+                            <i data-lucide="save"></i> Simpan Pengaturan Toko
+                        </button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i data-lucide="clock"></i> Jam Operasional</h3>
+                        <div class="operating-hours">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="opHoursOpen">Jam Buka</label>
+                                    <input type="time" id="opHoursOpen" class="form-input" value="08:00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="opHoursClose">Jam Tutup</label>
+                                    <input type="time" id="opHoursClose" class="form-input" value="21:00">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Hari Operasional</label>
+                                <div class="day-toggles" id="dayToggles">
+                                    <button class="day-toggle active" data-day="sen">Sen</button>
+                                    <button class="day-toggle active" data-day="sel">Sel</button>
+                                    <button class="day-toggle active" data-day="rab">Rab</button>
+                                    <button class="day-toggle active" data-day="kam">Kam</button>
+                                    <button class="day-toggle active" data-day="jum">Jum</button>
+                                    <button class="day-toggle active" data-day="sab">Sab</button>
+                                    <button class="day-toggle" data-day="min">Min</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="saveHoursBtn">
+                            <i data-lucide="save"></i> Simpan Jam Operasional
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Receipt / Struk -->
+            <div class="settings-tab-content" id="stab-receipt">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i data-lucide="receipt"></i> Format Struk</h3>
+                        <div class="form-group">
+                            <label for="receiptPaperSize">Ukuran Kertas</label>
+                            <select id="receiptPaperSize" class="form-input">
+                                <option value="58">58mm (Thermal kecil)</option>
+                                <option value="80" selected>80mm (Thermal standar)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="receiptHeader">Header Tambahan</label>
+                            <input type="text" id="receiptHeader" class="form-input" placeholder="NPWP: 12.345.678.9-012.000">
+                            <small>Info tambahan di bawah alamat (NPWP, dll)</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="receiptFooter">Pesan di Struk</label>
+                            <textarea id="receiptFooter" class="form-input" rows="3" placeholder="Terima Kasih! 🙏&#10;Barang yang sudah dibeli tidak dapat dikembalikan"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="receiptShowDate" checked> Tampilkan tanggal & waktu
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="receiptShowCashier" checked> Tampilkan nama kasir
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="receiptShowTxId" checked> Tampilkan nomor transaksi
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="receiptAutoPrint"> Auto cetak setelah bayar
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" id="saveReceiptBtn">
+                            <i data-lucide="save"></i> Simpan
+                        </button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i data-lucide="eye"></i> Preview Struk</h3>
+                        <div id="receiptPreview" class="receipt" style="font-size:11px;">
+                            <div class="receipt-header">
+                                <div class="receipt-store-name">Nama Toko Anda</div>
+                                <div>Alamat Toko</div>
+                            </div>
+                            <div class="receipt-divider"></div>
+                            <div class="receipt-info"><span>Tanggal</span><span>26/03/2026 17:00</span></div>
+                            <div class="receipt-info"><span>Kasir</span><span>Admin</span></div>
+                            <div class="receipt-divider"></div>
+                            <div class="receipt-item"><span>Produk A</span><span>Rp 15.000</span></div>
+                            <div class="receipt-item-detail">2 x Rp 7.500</div>
+                            <div class="receipt-item"><span>Produk B</span><span>Rp 25.000</span></div>
+                            <div class="receipt-item-detail">1 x Rp 25.000</div>
+                            <div class="receipt-divider"></div>
+                            <div class="receipt-total-row grand-total"><span>TOTAL</span><span>Rp 40.000</span></div>
+                            <div class="receipt-total-row"><span>BAYAR</span><span>Rp 50.000</span></div>
+                            <div class="receipt-total-row"><span>KEMBALI</span><span>Rp 10.000</span></div>
+                            <div class="receipt-divider"></div>
+                            <div class="receipt-footer">Terima Kasih! 🙏</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Telegram -->
+            <div class="settings-tab-content" id="stab-telegram">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i data-lucide="send"></i> Koneksi Telegram Bot</h3>
+                        <div class="telegram-status" id="telegramStatus">
+                            <div class="status-dot disconnected"></div>
+                            <span>Belum terhubung</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="telegramToken">Bot Token</label>
+                            <div class="input-with-toggle">
+                                <input type="password" id="telegramToken" placeholder="123456:ABCdef..." class="form-input">
+                                <button class="btn-icon" id="toggleTokenVisibility" title="Tampilkan/sembunyikan"><i data-lucide="eye"></i></button>
+                            </div>
+                            <small>Buat bot baru via <a href="https://t.me/BotFather" target="_blank">@BotFather</a> → /newbot</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="telegramChatId">Chat ID</label>
+                            <input type="text" id="telegramChatId" placeholder="123456789" class="form-input">
+                            <small>Kirim pesan ke bot, lalu cek via <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a></small>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="telegramEnabled"> Aktifkan notifikasi Telegram
+                            </label>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" id="saveTelegramBtn">
+                                <i data-lucide="save"></i> Simpan
+                            </button>
+                            <button class="btn btn-secondary" id="testTelegramBtn">
+                                <i data-lucide="send"></i> Test Kirim
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i data-lucide="bell"></i> Preferensi Notifikasi</h3>
+                        <p class="settings-desc">Pilih event yang akan dikirim ke Telegram:</p>
+                        <div class="form-group">
+                            <label class="checkbox-label"><input type="checkbox" id="notifSale" checked> 🛒 Setiap transaksi penjualan</label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label"><input type="checkbox" id="notifLowStock" checked> ⚠️ Stok menipis (di bawah threshold)</label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label"><input type="checkbox" id="notifDailyReport"> 📊 Laporan harian otomatis</label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label"><input type="checkbox" id="notifStockIn"> 📥 Setiap barang masuk</label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label"><input type="checkbox" id="notifLargeTransaction"> 💰 Transaksi besar (di atas nominal tertentu)</label>
+                        </div>
+                        <div class="form-group" id="largeTxThresholdGroup" style="display:none;">
+                            <label for="largeTxThreshold">Nominal minimum (Rp)</label>
+                            <input type="number" id="largeTxThreshold" class="form-input" value="500000" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="dailyReportTime">Waktu kirim laporan harian</label>
+                            <input type="time" id="dailyReportTime" class="form-input" value="21:00">
+                        </div>
+                        <button class="btn btn-primary" id="saveNotifPrefsBtn">
+                            <i data-lucide="save"></i> Simpan Preferensi
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Inventory -->
+            <div class="settings-tab-content" id="stab-inventory">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i data-lucide="package"></i> Pengaturan Stok</h3>
+                        <div class="form-group">
+                            <label for="lowStockThreshold">Batas stok menipis</label>
+                            <input type="number" id="lowStockThreshold" class="form-input" value="5" min="1">
+                            <small>Produk dengan stok ≤ angka ini akan ditandai "menipis"</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="criticalStockThreshold">Batas stok kritis</label>
+                            <input type="number" id="criticalStockThreshold" class="form-input" value="1" min="0">
+                            <small>Stok ≤ angka ini kirim notifikasi Telegram</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="allowNegativeStock"> Izinkan stok negatif (penjualan melebihi stok)
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="trackBatchPrices" checked> Catat harga beli per batch (barang masuk)
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" id="saveInventoryBtn">
+                            <i data-lucide="save"></i> Simpan
+                        </button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i data-lucide="tags"></i> Kategori Produk</h3>
+                        <p class="settings-desc">Kelola kategori agar produk terorganisir:</p>
+                        <div class="category-list" id="categoryList"></div>
+                        <div class="form-row" style="margin-top:1rem;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <input type="text" id="newCategoryName" class="form-input" placeholder="Nama kategori baru">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <button class="btn btn-primary" id="addCategoryBtn" style="width:100%;">
+                                    <i data-lucide="plus"></i> Tambah
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: POS -->
+            <div class="settings-tab-content" id="stab-pos">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i data-lucide="shopping-cart"></i> Pengaturan Kasir</h3>
+                        <div class="form-group">
+                            <label for="posGridSize">Ukuran tampilan produk</label>
+                            <select id="posGridSize" class="form-input">
+                                <option value="small">Kecil (lebih banyak item)</option>
+                                <option value="medium" selected>Sedang</option>
+                                <option value="large">Besar (mudah diklik)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="posDefaultView">Default tampilan</label>
+                            <select id="posDefaultView" class="form-input">
+                                <option value="grid" selected>Grid (kartu)</option>
+                                <option value="list">List (daftar)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="posSoundEnabled" checked> Suara saat tambah ke keranjang
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="posQuickPay"> Quick Pay (langsung bayar, tanpa input nominal)
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="posConfirmClear"> Konfirmasi saat kosongkan keranjang
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" id="savePosBtn">
+                            <i data-lucide="save"></i> Simpan
+                        </button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i data-lucide="keyboard"></i> Shortcut Keyboard</h3>
+                        <p class="settings-desc">Keyboard shortcut untuk mempercepat operasional kasir:</p>
+                        <div class="shortcuts-list">
+                            <div class="shortcut-item"><kbd>F2</kbd><span>Buka halaman Kasir</span></div>
+                            <div class="shortcut-item"><kbd>F4</kbd><span>Fokus ke pencarian produk</span></div>
+                            <div class="shortcut-item"><kbd>F8</kbd><span>Proses pembayaran</span></div>
+                            <div class="shortcut-item"><kbd>F9</kbd><span>Kosongkan keranjang</span></div>
+                            <div class="shortcut-item"><kbd>Esc</kbd><span>Tutup modal / popup</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Users -->
+            <div class="settings-tab-content" id="stab-users">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i data-lucide="users"></i> Daftar Pengguna / Kasir</h3>
+                        <p class="settings-desc">Kelola kasir yang muncul di struk pembayaran:</p>
+                        <div class="user-list" id="userList"></div>
+                        <div class="form-row" style="margin-top:1rem;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <input type="text" id="newUserName" class="form-input" placeholder="Nama kasir">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <button class="btn btn-primary" id="addUserBtn" style="width:100%;">
+                                    <i data-lucide="plus"></i> Tambah Kasir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i data-lucide="user-check"></i> Kasir Aktif</h3>
+                        <div class="form-group">
+                            <label for="activeUser">Pilih kasir yang sedang bertugas:</label>
+                            <select id="activeUser" class="form-input">
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="active-user-display" id="activeUserDisplay">
+                            <div class="active-user-avatar">👤</div>
+                            <div>
+                                <strong id="activeUserName">Admin</strong>
+                                <p style="color:var(--text-muted);font-size:0.82rem;margin-top:2px;">Sedang bertugas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Appearance -->
+            <div class="settings-tab-content" id="stab-appearance">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i data-lucide="palette"></i> Tema Warna</h3>
+                        <div class="theme-options" id="themeOptions">
+                            <div class="theme-option active" data-theme="default">
+                                <div class="theme-preview" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"></div>
+                                <span>Indigo</span>
+                            </div>
+                            <div class="theme-option" data-theme="emerald">
+                                <div class="theme-preview" style="background:linear-gradient(135deg,#10b981,#059669)"></div>
+                                <span>Emerald</span>
+                            </div>
+                            <div class="theme-option" data-theme="rose">
+                                <div class="theme-preview" style="background:linear-gradient(135deg,#f43f5e,#e11d48)"></div>
+                                <span>Rose</span>
+                            </div>
+                            <div class="theme-option" data-theme="amber">
+                                <div class="theme-preview" style="background:linear-gradient(135deg,#f59e0b,#d97706)"></div>
+                                <span>Amber</span>
+                            </div>
+                            <div class="theme-option" data-theme="cyan">
+                                <div class="theme-preview" style="background:linear-gradient(135deg,#06b6d4,#0891b2)"></div>
+                                <span>Cyan</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i data-lucide="type"></i> Ukuran Font</h3>
+                        <div class="form-group">
+                            <label for="fontSizeRange">Ukuran: <span id="fontSizeValue">15px</span></label>
+                            <input type="range" id="fontSizeRange" min="12" max="18" value="15" class="range-input">
+                        </div>
+                        <h3 style="margin-top:1.5rem;"><i data-lucide="layout"></i> Sidebar</h3>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="sidebarCompact"> Mode compact (sidebar sempit)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Data -->
+            <div class="settings-tab-content" id="stab-data">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><i data-lucide="hard-drive"></i> Penyimpanan</h3>
+                        <div class="storage-stats">
+                            <div class="storage-bar">
+                                <div class="storage-fill" id="storageFill" style="width:0%"></div>
+                            </div>
+                            <div class="storage-info">
+                                <span id="storageUsed">0 KB</span> / <span>5 MB</span> (localStorage)
+                            </div>
+                        </div>
+                        <div class="storage-breakdown" id="storageBreakdown">
+                            <div class="breakdown-item"><span>📦 Produk</span><span id="storageProducts">0 item</span></div>
+                            <div class="breakdown-item"><span>🛒 Transaksi</span><span id="storageTransactions">0 item</span></div>
+                            <div class="breakdown-item"><span>📥 Barang Masuk</span><span id="storageStockIn">0 item</span></div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i data-lucide="database"></i> Backup & Restore</h3>
+                        <p class="settings-desc">Export semua data untuk backup, atau import dari file backup.</p>
+                        <div class="btn-group-vertical">
+                            <button class="btn btn-secondary" id="exportDataBtn">
+                                <i data-lucide="download"></i> Export Data (JSON)
+                            </button>
+                            <button class="btn btn-secondary" id="importDataBtn">
+                                <i data-lucide="upload"></i> Import Data (JSON)
+                            </button>
+                        </div>
+                        <input type="file" id="importFileInput" accept=".json" style="display:none;">
+                        <hr style="border-color:var(--border);margin:1.5rem 0;">
+                        <h3 style="color:var(--red);margin-bottom:0.75rem;"><i data-lucide="alert-triangle"></i> Zona Bahaya</h3>
+                        <p class="settings-desc" style="color:var(--red);">Hati-hati! Aksi ini tidak bisa dibatalkan.</p>
+                        <div class="btn-group-vertical">
+                            <button class="btn btn-danger" id="clearTransactionsBtn">
+                                <i data-lucide="trash-2"></i> Hapus Semua Transaksi
+                            </button>
+                            <button class="btn btn-danger" id="resetDataBtn">
+                                <i data-lucide="alert-triangle"></i> Reset Semua Data Aplikasi
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i data-lucide="info"></i> Tentang Aplikasi</h3>
+                        <div class="about-info">
+                            <div class="about-logo">B</div>
+                            <h2 style="margin:0.5rem 0 0.25rem;">BisnisKu</h2>
+                            <p style="color:var(--text-muted);font-size:0.85rem;">Versi 1.0.0</p>
+                            <p style="color:var(--text-secondary);font-size:0.88rem;margin-top:1rem;line-height:1.6;">Aplikasi manajemen bisnis & keuangan lengkap dengan kasir POS, cetak struk, manajemen inventaris, laporan keuangan, dan integrasi Telegram.</p>
+                            <div class="about-tech">
+                                <span class="tech-badge">HTML5</span>
+                                <span class="tech-badge">CSS3</span>
+                                <span class="tech-badge">JavaScript</span>
+                                <span class="tech-badge">Chart.js</span>
+                                <span class="tech-badge">localStorage</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ======================= MODALS ======================= -->
+    <!-- Product Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="productModalTitle">Tambah Produk</h3>
+                <button class="btn-icon" onclick="closeModal('productModal')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label for="productName">Nama Produk</label>
+                    <input type="text" id="productName" class="form-input" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="productCategory">Kategori</label>
+                        <input type="text" id="productCategory" class="form-input" placeholder="Makanan, Minuman, dll">
+                    </div>
+                    <div class="form-group">
+                        <label for="productSku">SKU / Kode</label>
+                        <input type="text" id="productSku" class="form-input" placeholder="Opsional">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="productBuyPrice">Harga Beli (Rp)</label>
+                        <input type="number" id="productBuyPrice" class="form-input" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="productSellPrice">Harga Jual (Rp)</label>
+                        <input type="number" id="productSellPrice" class="form-input" required min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="productStock">Stok Awal</label>
+                    <input type="number" id="productStock" class="form-input" required min="0" value="0">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="productSubmitBtn">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stock In Modal -->
+    <div class="modal-overlay" id="stockInModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Catat Barang Masuk</h3>
+                <button class="btn-icon" onclick="closeModal('stockInModal')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="stockInForm">
+                <div class="form-group">
+                    <label for="stockInProduct">Produk</label>
+                    <select id="stockInProduct" class="form-input" required>
+                        <option value="">Pilih Produk</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="stockInQty">Jumlah</label>
+                        <input type="number" id="stockInQty" class="form-input" required min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="stockInPrice">Harga Beli Satuan (Rp)</label>
+                        <input type="number" id="stockInPrice" class="form-input" required min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="stockInNote">Keterangan</label>
+                    <input type="text" id="stockInNote" class="form-input" placeholder="Opsional">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('stockInModal')">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receipt Modal (for print) -->
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal modal-receipt">
+            <div class="modal-header">
+                <h3>Struk Pembayaran</h3>
+                <button class="btn-icon" onclick="closeModal('receiptModal')"><i data-lucide="x"></i></button>
+            </div>
+            <div id="receiptContent" class="receipt">
+                <!-- Receipt content generated by JS -->
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="closeModal('receiptModal')">Tutup</button>
+                <button class="btn btn-primary" id="printReceiptBtn">
+                    <i data-lucide="printer"></i> Cetak Struk
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Alert Modal -->
+    <div class="modal-overlay" id="stockAlertModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>⚠️ Stok Menipis</h3>
+                <button class="btn-icon" onclick="closeModal('stockAlertModal')"><i data-lucide="x"></i></button>
+            </div>
+            <div id="stockAlertList" class="stock-alert-list"></div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="closeModal('stockAlertModal')">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
